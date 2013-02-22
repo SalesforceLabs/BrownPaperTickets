@@ -1,0 +1,175 @@
+<!-- 
+Copyright (c) 2013, salesforce.com, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the name of the salesforce.com, Inc. nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
+-->
+
+<apex:page controller="BPTCallout">
+    <head>
+        <apex:stylesheet value="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/css/styles.css')}"/>
+    </head>
+
+    <body>
+        <br />
+        <a href="javascript:;" class="helpLink" onmousedown="toggleDiv('helpDiv');">Quick Start Guide</a> &nbsp; <span class="header">&#8592;</span> Click to expand/collapse
+        <div id="helpDiv" class="helpDiv">
+        <img src="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/images/quick_start_txt.png')}"/>
+
+            <ol>
+                <b>ONE-TIME SETUP:</b>
+                <li>
+                    Go to the Salesforce remote site settings configuration <a href="{!$Site.Domain}/0rp?spl1=1&setupid=SecurityRemoteProxy&retURL=%2Fui%2Fsetup%2FSetup%3Fsetupid%3DSecurity" target="_blank">page</a>
+                    (Your Name --> Setup --> Security Controls --> Remote Site Settings). Add "https://www.brownpapertickets.com" as the Remote Site URL and save the configuration.
+                </li>
+                <br /><br />
+                <li>
+                    Login to your Brown Paper Tickets account <a href="https://www.brownpapertickets.com/login.html" target="_blank">here</a>.
+                </li>
+                <br /><br />
+                <li>
+                    In the "Developer" tab in the top-left toolbar, navigate to the "Authorized Accounts" <a href="https://www.brownpapertickets.com/developer/accounts.html" target="_blank">page</a>.
+                    <br /><br />
+                    (If you do not see a "Developer" tab, go to the <a href="https://www.brownpapertickets.com/user/functions.html" target="_blank">Account Functions</a> page and
+                    click the "Developer Tools" <a href="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/images/devStep2.png')}" target="_blank">button</a> to enable this functionality on your account.)
+                </li>
+                <br /><br />
+                <li>
+                    Add the client information of the Account whose Events and Orders you would like to pull into Salesforce. Then, check the
+                    <a href="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/images/devStep3.png')}" target="_blank">first three boxes</a> and click the "Add Client Account" button.
+                </li>
+                <br /><br />
+           </ol>
+
+           <ol>
+               <b>PULLING BROWN PAPER TICKETS DATA:</b>
+               <li>
+                   Complete the Developer Account Information fields below, then click the "Get Events button" to obtain a list of all
+                   of your Brown Paper Tickets account's active events.
+               </li>
+               <br /><br />
+               <li>
+                   Once the event list is populated, you must convert these events to Salesforce Campaigns, and you can then pull in these events' orders as Salesforce Opportunities*.
+               </li>
+           </ol>
+
+            <br /><br />
+            <span>*Opportunities are created from ticket orders using Ticket Number as a unique identifier. If Opportunities already exist with the given
+             number, they will not be created as duplicates.</span>
+        </div>
+
+        <br /><br /><br />
+
+        <apex:form id="acctFrm" >
+            <span class="header">Brown Paper Tickets Account Information</span>
+            <apex:pageBlock id="credSection">
+                    <b>{!$ObjectType.BPT_Configuration__c.Fields.Login__c.Label}:</b>&nbsp; <apex:inputText value="{!login}" id="loginTxt"/><br /><br />
+                    <b>{!$ObjectType.BPT_Configuration__c.Fields.Dev_ID__c.Label}:</b>&nbsp; <apex:inputText value="{!devId}" id="devIdTxt"/><br /><br />
+                <apex:commandButton value="Save as Defaults" action="{!saveConfig}" /><br /><br />
+                <apex:outputText styleClass="errorMsg" value="Failed to connect to Brown Paper Tickets. Are your login and Developer ID values correct?" rendered="{!integFailure}"/>
+            </apex:pageBlock>
+
+            <br /><br />
+            <span class="header">Active Brown Paper Tickets Events</span>
+
+            <apex:pageBlock id="eventBlock">
+                <apex:commandButton action="{!setEventCallout}" value="Get Events" id="eventListBtn" onclick="showSwirl('swirl1')" rerender="eventListSection,saveCampLink,eventListBtn,eventBlock,credSection" rendered="{!NOT(eventsFound)}"/>
+                <br />
+                <div id="swirl1" class="overlaySwirl">
+                    <img src="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/images/swirl.gif')}"/>
+                </div>
+                <apex:outputText styleClass="noOpptyMsg" value="No Events found for the given Brown Paper Tickets Account" rendered="{!noEvents}"/>
+                <apex:pageBlockSection columns="1" id="eventListSection" rendered="{!eventsFound}">
+                    <apex:pageBlockTable value="{!eventIdStrMap}" columns="3" var="e">
+                        <apex:column headerValue="Event Name" >
+                            <a href="{!eventIdStrMap[e].eventLink}" target="_blank">{!eventIdStrMap[e].nameStr}</a>
+                        </apex:column>
+                        <apex:column headerValue="Event ID" >
+                            {!eventIdStrMap[e].eventId}
+                        </apex:column>
+                        <apex:column headerValue="Action" >
+                            <apex:commandLink action="{!saveAsCampaign}" value="Save As Campaign" id="saveCampLink" rerender="campFailMsg,campFailMsg2,campSaveMsg,eventListSection,opptyStatus,opptyTable,oppSection" rendered="{!NOT(eventIdStrMap[e].exists)}">
+                                <apex:param name="campSave" value="{!eventIdStrMap[e].allStrs}" assignTo="{!campString}" />
+                            </apex:commandLink>
+                            <apex:outputLink value="{!$Site.Domain}/{!eventIdStrMap[e].campId}" id="theLink" rendered="{!eventIdStrMap[e].exists}" target="_blank">Campaign exists</apex:outputLink>
+                            <apex:outputText value=" | " rendered="{!eventIdStrMap[e].exists}" />
+                            <apex:commandLink action="{!setOpptyCallout}" value="Get all ticket sales as Opportunities" id="getOrdersLink" rendered="{!eventIdStrMap[e].exists}" onclick="showSwirl('swirl2')">
+                                <apex:param name="id" value="{!eventIdStrMap[e].eventId}" assignTo="{!eventIdStr}" />
+                            </apex:commandLink>
+                        </apex:column>
+                    </apex:pageBlockTable>
+
+                    <apex:outputText styleClass="errorMsg" id="campFailMsg" rendered="{!campSaveFail}">Failed to save Event as a Campaign. Is it a duplicate?</apex:outputText>
+                    <apex:outputText styleClass="errorMsg" id="campFailMsg2" rendered="{!noCampPerms}">You do not have the necessary permissions to create new Campaigns.</apex:outputText>
+                    <apex:outputText id="campSaveMsg" rendered="{!campSaved}">New Campaign created successfully. &nbsp;<a href="{!$Site.Domain}/{!newCampId}" target="_blank">View in new window</a></apex:outputText>
+                </apex:pageBlockSection>
+
+                <br />
+
+                <apex:pageBlockSection columns="1" id="oppSection" rendered="{!eventsFound}">
+                    <div id="swirl2" class="overlaySwirl">
+                        <img src="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/images/swirl.gif')}"/>
+                    </div>
+                    <apex:outputText styleClass="noOpptyMsg" value="No new ticket sales were found for Event {!eventIdStr}" rendered="{!noOpptys}"/>
+                    <apex:outputText styleClass="errorMsg" id="opptyFailMsg" rendered="{!noOpptyPerms}">You do not have the necessary permissions to create new Opportunities.</apex:outputText>
+                    <apex:outputText rendered="{!opptysCreated}" id="opptyStatus"> {!opptyNumber} new Opportunities were created for Event {!eventIdStr}...</apex:outputText>
+                    <apex:pageBlockTable id="opptyTable" value="{!opptyList}" var="no" rendered="{!opptysCreated}">
+                        <apex:column headerValue="{!$ObjectType.Opportunity.Fields.Name.Label}">
+                            <apex:outputLink target="_blank" value="/{!no.Id}"><b>{!no.name}</b></apex:outputLink>
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Opportunity.Fields.TotalOpportunityQuantity.Label}">
+                            {!no.TotalOpportunityQuantity}
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Opportunity.Fields.Ticket_Number__c.Label}">
+                            {!no.Ticket_Number__c}
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:pageBlockSection>
+
+            </apex:pageBlock>
+        </apex:form>
+    </body>
+
+    <script>
+      function toggleDiv(divid) {
+            var d = document.getElementById(divid);
+            if (d.style.display == 'none' || d.style.display == '') {
+                d.style.display = 'block';
+            }
+            else {
+                d.style.display = 'none';
+            }
+        }
+
+        function showSwirl(swirlId) {
+            var input1 = document.getElementById('{!$Component.j_id0:acctFrm:credSection:loginTxt}');
+            var input2 = document.getElementById('{!$Component.j_id0:acctFrm:credSection:devIdTxt}');
+
+            if (input1 != null && input2 != null && input1.value != null && input1.value != '' && input2.value != null && input2.value != '') {
+                document.getElementById(swirlId).style.display = 'block';
+            }            
+        }
+    </script>
+    <!-- <apex:includeScript value="{!URLFOR($Resource.BPT_Static_Res, 'bpt2salesforce/script/bpt_script.js')}"/> -->
+</apex:page>

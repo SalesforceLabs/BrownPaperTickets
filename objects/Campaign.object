@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Event_Link__c</fullName>
+        <description>Link to Campaign&apos;s corresponding Brown Paper Tickets event page.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Link to Campaign&apos;s corresponding Brown Paper Tickets event page.</inlineHelpText>
+        <label>Event Link</label>
+        <required>false</required>
+        <type>Url</type>
+    </fields>
+    <fields>
+        <fullName>Event_Number__c</fullName>
+        <description>Brown Paper Tickets event number</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Brown Paper Tickets event number</inlineHelpText>
+        <label>Event Number</label>
+        <length>20</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+</CustomObject>

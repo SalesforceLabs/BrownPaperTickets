@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>BPT_API_URL</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BPT_API_URL</shortDescription>
+        <value>https://www.brownpapertickets.com/api2/</value>
+    </labels>
+    <labels>
+        <fullName>BPT_Event_Attributes</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BPT_Event_Attributes</shortDescription>
+        <value>e_number;title;link;</value>
+    </labels>
+    <labels>
+        <fullName>BPT_Order_Attributes</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>BPT_Order_Attributes</shortDescription>
+        <value>fname;lname;address;city;state;zip;email;phone;quantity;ticket_number;</value>
+    </labels>
+</CustomLabels>

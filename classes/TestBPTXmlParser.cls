@@ -28,7 +28,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
 
 @isTest
 private class TestBPTXmlParser {
-    private static final String ORDER_XML_STR = '<document>' +
+	private static Set<Id> idSet = new Set<Id>();
+
+    private static final String ORDER_XML_STR = '<?xml version=\"1.0\"?>' +
+                                                    '<document>' +
                                                      '<result>success</result>' +
                                                      '<resultcode>000000</resultcode>' +
                                                      '<note></note>' +
@@ -50,9 +53,111 @@ private class TestBPTXmlParser {
                                                         '<shipping_method>Physical</shipping_method>' +
                                                         '<order_notes></order_notes>' +
                                                         '<ticket_number>A22647604</ticket_number>' +
-                                                        '<section></section>' +
+                                                        '<section>1</section>' +
+                                                        '<row>C</row>' +
+                                                        '<seat>23</seat>' +
+                                                     '</item>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-11-29 10:25:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>5</quantity>' +
+                                                        '<fname>Bob</fname>' +
+                                                        '<lname>Tungsten</lname>' +
+                                                        '<address>23232 Fleet Street</address>' +
+                                                        '<city>Santa Clara</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>btung@yahoo.com</email>' +
+                                                        '<phone>4155555555</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22647605</ticket_number>' +
+                                                        '<section>1</section>' +
+                                                        '<row>C</row>' +
+                                                        '<seat>23</seat>' +
+                                                     '</item>' +
+                                                   '</document>';
+        
+        private static final String ORDER_XML_STR2 = '<?xml version=\"1.0\"?>' +
+                                                     '<document>' +
+                                                     '<result>success</result>' +
+                                                     '<resultcode>000000</resultcode>' +
+                                                     '<note></note>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-11-29 10:22:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>5</quantity>' +
+                                                        '<fname>Bob</fname>' +
+                                                        '<lname>Tungsten</lname>' +
+                                                        '<address>23232 Fleet Street</address>' +
+                                                        '<city>Santa Clara</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>btung@yahoo.com</email>' +
+                                                        '<phone>4155555555</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22647604</ticket_number>' +
+                                                        '<section>1</section>' +
                                                         '<row></row>' +
                                                         '<seat></seat>' +
+                                                     '</item>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-11-29 10:25:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>5</quantity>' +
+                                                        '<fname>Bob</fname>' +
+                                                        '<lname>Tungsten</lname>' +
+                                                        '<address>23232 Fleet Street</address>' +
+                                                        '<city>Santa Clara</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>btung@yahoo.com</email>' +
+                                                        '<phone>4155555555</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22647605</ticket_number>' +
+                                                        '<section>1</section>' +
+                                                        '<row></row>' +
+                                                        '<seat></seat>' +
+                                                     '</item>' +
+                                                   '</document>';
+                                                   
+    private static final String ORDER_XML_STR3 = '<?xml version=\"1.0\"?>' +
+                                                     '<document>' +
+                                                     '<result>success</result>' +
+                                                     '<resultcode>000000</resultcode>' +
+                                                     '<note></note>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-11-29 10:22:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>5</quantity>' +
+                                                        '<fname>Bob</fname>' +
+                                                        '<lname>Tungsten</lname>' +
+                                                        '<address>23232 Fleet Street</address>' +
+                                                        '<city>Santa Clara</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>btung@yahoo.com</email>' +
+                                                        '<phone>4155555555</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22647604</ticket_number>' +
+                                                        '<section>2</section>' +
+                                                        '<row>C</row>' +
+                                                        '<seat>33</seat>' +
                                                      '</item>' +
                                                      '<item>' +
                                                         '<order_time>2012-11-29 10:25:34</order_time>' +
@@ -76,9 +181,32 @@ private class TestBPTXmlParser {
                                                         '<row></row>' +
                                                         '<seat></seat>' +
                                                      '</item>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-11-29 10:25:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>5</quantity>' +
+                                                        '<fname>Bob</fname>' +
+                                                        '<lname>Tungsten</lname>' +
+                                                        '<address>23232 Fleet Street</address>' +
+                                                        '<city>Santa Clara</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>btung@yahoo.com</email>' +
+                                                        '<phone>4155555555</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22647606</ticket_number>' +
+                                                        '<section>2</section>' +
+                                                        '<row>E</row>' +
+                                                        '<seat>44</seat>' +
+                                                     '</item>' +
                                                    '</document>';
 
-    private static final String EVENT_XML_STR = '<document>' +
+    private static final String EVENT_XML_STR = '<?xml version=\"1.0\"?>' +
+                                                    '<document>' +
                                                     '<result>success</result>' +
                                                     '<resultcode>000000</resultcode>' +
                                                     '<note></note>' +
@@ -104,7 +232,7 @@ private class TestBPTXmlParser {
 
     /* Test basic Campaign and Opportunity creation and insertion functionality */
     @isTest
-    static private void xmlOrderParserTest() {
+    static private void xmlOrderParserTest1() {
         // Let's first process our actual Events into Campaigns
         XmlStreamReader reader = new XmlStreamReader(EVENT_XML_STR);
         BPTXmlParser bParseTest = new BPTXmlParser(reader, null);
@@ -125,7 +253,6 @@ private class TestBPTXmlParser {
         reader = new XmlStreamReader(ORDER_XML_STR);
         bParseTest = new BPTXmlParser(reader, '2343244');
         Opportunity[] oList = bParseTest.getOpptyMap().values();
-        Set<Id> idSet = new Set<Id>();
 
         System.assertEquals(oList.size(), 2);
         insert oList;
@@ -140,7 +267,8 @@ private class TestBPTXmlParser {
                                     BPT_Email__c,
                                     Phone_Number__c,
                                     TotalOpportunityQuantity,
-                                    BPT_Event_Id__c
+                                    BPT_Event_Id__c,
+                                    Row_and_Seat__c
                               from Opportunity
                               where Id in :idSet]) {
             System.assertNotEquals(o.Id, null);
@@ -151,6 +279,7 @@ private class TestBPTXmlParser {
             System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
             System.assertEquals(o.Phone_Number__c, '4155555555');
             System.assertEquals(o.TotalOpportunityQuantity, 5);
+            System.assertEquals(o.Row_and_Seat__c, 'Section 1, Row C, Seat 23');
             System.assertEquals(o.BPT_Event_Id__c, '2343244');
         }
 
@@ -159,5 +288,119 @@ private class TestBPTXmlParser {
         bParseTest = new BPTXmlParser(reader, '2343244');
         Opportunity[] oList2 = bParseTest.getOpptyMap().values();
         System.assertEquals(oList2.size(), 0);
+    }
+    
+    /* Test creating 2 Opportunities, each with null seat assignment */
+    @isTest
+    static private void xmlOrderParserTestNullSeats() {
+        // Let's first process our actual Events into Campaigns
+        XmlStreamReader reader = new XmlStreamReader(EVENT_XML_STR);
+        BPTXmlParser bParseTest = new BPTXmlParser(reader, null);
+
+        System.assertEquals(2, bParseTest.getEventStringList().size());
+        System.assertEquals('Test Developer Event 1^http://www.brownpapertickets.com/event/2343244^2343244', bParseTest.getEventStringList()[0]);
+        System.assertEquals('Test Developer Event 2^http://www.brownpapertickets.com/event/42344^42344', bParseTest.getEventStringList()[1]);
+
+        reader = new XmlStreamReader(EVENT_XML_STR);
+        BPTXmlParser bParseTest2 = new BPTXmlParser(reader, null);
+
+        // Now insert a Campaign for our Opportunities to be linked to
+        Campaign existingCampaign = new Campaign(Name='Test Developer Event 1', Event_Number__c='2343244', Event_Link__c='http://www.brownpapertickets.com/event/2343244');
+        insert existingCampaign;
+        System.assertNotEquals(null, existingCampaign.Id);
+
+        // Now let's process the orders from these Events into Opportunities
+        reader = new XmlStreamReader(ORDER_XML_STR2);
+        bParseTest = new BPTXmlParser(reader, '2343244');
+        Opportunity[] oList = bParseTest.getOpptyMap().values();
+
+        System.assertEquals(oList.size(), 2);
+        insert oList;
+        idSet.add(oList[0].Id);
+        idSet.add(oList[1].Id);
+
+        for (Opportunity o: [select Id,
+                                    Name,
+                                    Street_Address__c,
+                                    City__c,
+                                    Zip_Code__c,
+                                    BPT_Email__c,
+                                    Phone_Number__c,
+                                    TotalOpportunityQuantity,
+                                    BPT_Event_Id__c,
+                                    Row_and_Seat__c
+                              from Opportunity
+                              where Id in :idSet]) {
+            System.assertNotEquals(o.Id, null);
+            System.assertEquals(o.Name, 'Test Developer Event 1 - Bob Tungsten');
+            System.assertEquals(o.Street_Address__c, '23232 Fleet Street');
+            System.assertEquals(o.City__c, 'Santa Clara');
+            System.assertEquals(o.Zip_Code__c, '94105');
+            System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
+            System.assertEquals(o.Phone_Number__c, '4155555555');
+            System.assertEquals(o.TotalOpportunityQuantity, 5);
+            System.assertEquals(o.Row_and_Seat__c, 'Section 1, Row N/A, Seat N/A');
+            System.assertEquals(o.BPT_Event_Id__c, '2343244');
+        }
+    }
+
+    /* Test creating 3 Opportunities, each with different seat assignments */
+    @isTest
+    static private void xmlOrderParserTestMixedSeats() {
+        // Let's first process our actual Events into Campaigns
+        XmlStreamReader reader = new XmlStreamReader(EVENT_XML_STR);
+        BPTXmlParser bParseTest = new BPTXmlParser(reader, null);
+
+        System.assertEquals(2, bParseTest.getEventStringList().size());
+        System.assertEquals('Test Developer Event 1^http://www.brownpapertickets.com/event/2343244^2343244', bParseTest.getEventStringList()[0]);
+        System.assertEquals('Test Developer Event 2^http://www.brownpapertickets.com/event/42344^42344', bParseTest.getEventStringList()[1]);
+
+        reader = new XmlStreamReader(EVENT_XML_STR);
+        BPTXmlParser bParseTest2 = new BPTXmlParser(reader, null);
+
+        // Now insert a Campaign for our Opportunities to be linked to
+        Campaign existingCampaign = new Campaign(Name='Test Developer Event 1', Event_Number__c='2343244', Event_Link__c='http://www.brownpapertickets.com/event/2343244');
+        insert existingCampaign;
+        System.assertNotEquals(null, existingCampaign.Id);
+
+        // Now let's process the orders from these Events into Opportunities
+        reader = new XmlStreamReader(ORDER_XML_STR3);
+        bParseTest = new BPTXmlParser(reader, '2343244');
+        Opportunity[] oList = bParseTest.getOpptyMap().values();
+
+        System.assertEquals(oList.size(), 3);
+        insert oList;
+        idSet.add(oList[0].Id);
+        idSet.add(oList[1].Id);
+        idSet.add(oList[2].Id);
+
+        oList = [select Id,
+                        Name,
+                        Street_Address__c,
+                        City__c,
+                        Zip_Code__c,
+                        BPT_Email__c,
+                        Phone_Number__c,
+                        TotalOpportunityQuantity,
+                        BPT_Event_Id__c,
+                        Row_and_Seat__c
+                  from Opportunity
+                  where Id in :idSet];
+
+        for (Integer i=0; i<oList.size(); i++) {
+            System.assertNotEquals(oList[i].Id, null);
+            System.assertEquals(oList[i].Name, 'Test Developer Event 1 - Bob Tungsten');
+            System.assertEquals(oList[i].Street_Address__c, '23232 Fleet Street');
+            System.assertEquals(oList[i].City__c, 'Santa Clara');
+            System.assertEquals(oList[i].Zip_Code__c, '94105');
+            System.assertEquals(oList[i].BPT_Email__c, 'btung@yahoo.com');
+            System.assertEquals(oList[i].Phone_Number__c, '4155555555');
+            System.assertEquals(oList[i].TotalOpportunityQuantity, 5);
+            System.assertEquals(oList[i].BPT_Event_Id__c, '2343244');
+        }
+
+        System.assertEquals(oList[0].Row_and_Seat__c, 'Section 2, Row E, Seat 44');
+        System.assertEquals(oList[1].Row_and_Seat__c, 'Section 2, Row C, Seat 33');
+        System.assertEquals(oList[2].Row_and_Seat__c, 'Section N/A, Row N/A, Seat N/A');
     }
 }

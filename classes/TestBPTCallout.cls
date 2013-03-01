@@ -1,36 +1,16 @@
-/*
-Copyright (c) 2013, salesforce.com, Inc.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
-    * Neither the name of the salesforce.com, Inc. nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
-*/
+/* 
+ * This class tests creation and submission of a REST request to Brown Paper Tickets to retrieve
+ * EventSales and/or OrderSales info.
+ * 
+ * https://github.com/doubleminus/BPTIntegration
+ * License: GPL v3.0 (c) Nathan Wisman, 2013
+ */
 
 @isTest
 private class TestBPTCallout {
     private static HttpResponse resVar;
 
-    private static final String NO_ORDER_STR = '<document></document>';
+    private static final String NO_ORDER_STR = '<?xml version=\"1.0\"?><document></document>';
     
     private static final String SHORT_ORDER_STR = '<?xml version=\"1.0\"?>' +
                                                     '<document>' +
@@ -39,7 +19,8 @@ private class TestBPTCallout {
                                                     '<note></note>' +
                                                     '</document>';
 
-    private static final String ORDER_XML_STR = '<document>' +
+    private static final String ORDER_XML_STR = '<?xml version=\"1.0\"?>' +
+                                                    '<document>' +
                                                      '<result>success</result>' +
                                                      '<resultcode>000000</resultcode>' +
                                                      '<note></note>' +
@@ -61,9 +42,9 @@ private class TestBPTCallout {
                                                         '<shipping_method>Physical</shipping_method>' +
                                                         '<order_notes></order_notes>' +
                                                         '<ticket_number>A22647604</ticket_number>' +
-                                                        '<section></section>' +
-                                                        '<row></row>' +
-                                                        '<seat></seat>' +
+                                                        '<section>33</section>' +
+                                                        '<row>C</row>' +
+                                                        '<seat>23</seat>' +
                                                      '</item>' +
                                                      '<item>' +
                                                         '<order_time>2012-11-29 10:25:34</order_time>' +
@@ -83,13 +64,14 @@ private class TestBPTCallout {
                                                         '<shipping_method>Physical</shipping_method>' +
                                                         '<order_notes></order_notes>' +
                                                         '<ticket_number>A22647605</ticket_number>' +
-                                                        '<section></section>' +
-                                                        '<row></row>' +
-                                                        '<seat></seat>' +
+                                                        '<section>33</section>' +
+                                                        '<row>C</row>' +
+                                                        '<seat>23</seat>' +
                                                      '</item>' +
                                                    '</document>';
 
-    private static final String EVENT_XML_STR = '<document>' +
+    private static final String EVENT_XML_STR = '<?xml version=\"1.0\"?>' +
+                                                    '<document>' +
                                                     '<result>success</result>' +
                                                     '<resultcode>000000</resultcode>' +
                                                     '<note></note>' +
@@ -140,12 +122,28 @@ private class TestBPTCallout {
         insert b;
         System.assertNotEquals(null, b.Id);
         BPTCallout resTest2 = new BPTCallout();
-        //System.assertNotEquals(null, BPTCallout.BPT_CONFIG);
-        //System.assertEquals(BPTCallout.devid, 'testdevid');
-        //System.assertEquals(BPTCallout.login, 'testemail');
+       // System.assertNotEquals(null, BPTCallout.bpt_config);
+       // System.assertEquals(BPTCallout.devid, 'testdevid');
+       // System.assertEquals(BPTCallout.login, 'testemail');
 
         System.assertEquals(null, resTest2.saveConfig());
         System.assertEquals(null, resTest.setEventCallout());
+    }
+    
+    static testMethod void testCustomSettingConfig2() {
+        BPT_Configuration__c b = new BPT_Configuration__c(Name='Main Settings Record', Dev_ID__c = 'testdevid', Login__c = 'testemail');
+        insert b;
+        System.assertNotEquals(null, b.Id);
+        
+        Test.startTest();
+        BPTCallout resTest2 = new BPTCallout();
+        System.assertNotEquals(null, BPTCallout.bpt_config);
+        System.assertEquals(BPTCallout.devid, 'testdevid');
+        System.assertEquals(BPTCallout.login, 'testemail');
+
+        System.assertEquals(null, resTest2.saveConfig());
+        System.assertEquals(null, resTest2.setEventCallout());
+        Test.stopTest();
     }
 
     /* Test processing BPT Orders into Opportunities...*/
@@ -179,6 +177,7 @@ private class TestBPTCallout {
         System.assert(!BPTCallout.noOpptys);
         System.assert(resTest.opptysCreated);
         System.assertEquals(null, BPTCallout.integFailure);
+        System.assertEquals(BPTCallout.opptyNumber, 2);
 
         Set<Id> idSet = new Set<Id>();
         idSet.add(oList[0].Id);
@@ -193,7 +192,8 @@ private class TestBPTCallout {
                                     BPT_Email__c,
                                     Phone_Number__c,
                                     TotalOpportunityQuantity,
-                                    BPT_Event_Id__c
+                                    BPT_Event_Id__c,
+                                    Row_and_Seat__c
                               from Opportunity
                               where Id in :idSet]) {
             System.assertNotEquals(o.Id, null);
@@ -205,6 +205,7 @@ private class TestBPTCallout {
             System.assertEquals(o.Phone_Number__c, '4155555555');
             System.assertEquals(o.TotalOpportunityQuantity, 5);
             System.assertEquals(o.BPT_Event_Id__c, '888888');
+            System.assertEquals(o.Row_and_Seat__c, 'Section 33, Row C, Seat 23');
         }
     }
 
@@ -409,8 +410,8 @@ private class TestBPTCallout {
         System.assertEquals(null, bptCntrl.opptysCreated);
         System.assertEquals(null, bptCntrl.setOpptyCallout());
 
-        // Create a String of invalid length when split via caret characters
-        String testStr = 'wflksd^ghbneventNamer3^12345^http://www.eventlink.org/^kmfds';
+        // Create a String of invalid length when split via hyphens
+        String testStr = 'wflksd^ghbneventNamer3^12345-http://www.eventlink.org/^kmfds';
 
         BPTCallout.cString testC = new BPTCallout.cString(testStr);
         System.assertEquals(testC.allStrs, null);

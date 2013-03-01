@@ -19,6 +19,6 @@
         <language>en_US</language>
         <protected>true</protected>
         <shortDescription>BPT_Order_Attributes</shortDescription>
-        <value>fname;lname;address;city;state;zip;email;phone;quantity;ticket_number;</value>
+        <value>fname;lname;address;city;state;zip;email;phone;quantity;ticket_number;section;row;seat;</value>
     </labels>
 </CustomLabels>

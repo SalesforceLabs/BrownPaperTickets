@@ -27,7 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
 */
 
 public with sharing class BPTXmlParser {
-    private static final Set<String> ORDER_ATTRIBUTE_SET = new Set<String>(), EVENT_ATTRIBUTE_SET = new Set<String>();
+    private static final Set<String> ORDER_ATTRIBUTE_SET = new Set<String>(), EVENT_ATTRIBUTE_SET = new Set<String>(),
+                                     SEATING_SKIPS = new Set<String>{'section', 'row', 'seat'};
     private Map<String, Opportunity> opptyMap = new Map<String, Opportunity>();
     private Campaign existingCamp = new Campaign();
     private Set<String> ticketNumSet = new Set<String>(), eventIdSet = new Set<String>();
@@ -92,9 +93,19 @@ public with sharing class BPTXmlParser {
                 }
 
                 if (orders == true) {
-                    if (reader.getEventType() == XmlTag.CHARACTERS && reader.getText() != null && String.isNotBlank(localName)) {
+                    if (reader.getEventType() == XmlTag.CHARACTERS) {
                         setOppty(localName, reader.getText());
                         orders = false;
+                    }
+                    else if (reader.getEventType() == XmlTag.CHARACTERS && SEATING_SKIPS.contains(localName)) {
+                        setOppty(localName, reader.getText());
+                        orders = false;
+                        localName = '';
+                    }
+                    else if (reader.getEventType() == XmlTag.END_ELEMENT && SEATING_SKIPS.contains(localName)) {
+                        setOppty(localName, 'N/A');
+                        orders = false;
+                        localName = '';
                     }
                 }
                 else if (events == true) {
@@ -118,52 +129,62 @@ public with sharing class BPTXmlParser {
     * the appropriate Opportunity field
     */
     private void setOppty(String locName, String textVal) {
-    	if (String.isNotBlank(textVal)) {
-	        if (locName == 'fname') {
-	            o.Name = existingCamp.Name + ' - ' + textVal;
-	        }
-	        else if (locName == 'lname') {
-	            o.Name += ' ' + textVal;
-	        }
-	        else if (locName == 'address') {
-	            o.Street_Address__c = textVal;
-	        }
-	        else if (locName == 'city') {
-	            o.City__c = textVal;
-	        }
-	        else if (locName == 'state') {
-	            o.State__c = textVal;
-	        }
-	        else if (locName == 'zip') {
-	            o.Zip_Code__c = textVal;
-	        }
-	        else if (locName == 'email') {
-	            o.BPT_Email__c = textVal;
-	        }
-	        else if (locName == 'price_id') {
-	
-	        }
-	        else if (locName == 'quantity') {
-	            o.TotalOpportunityQuantity = decimal.valueOf(textVal);
-	            o.Number_of_Tickets__c = decimal.valueOf(textVal);
-	        }
+        if (String.isNotBlank(textVal)) {
+            if (locName == 'fname') {
+                o.Name = existingCamp.Name + ' - ' + textVal;
+            }
+            else if (locName == 'lname') {
+                o.Name += ' ' + textVal;
+            }
+            else if (locName == 'address') {
+                o.Street_Address__c = textVal;
+            }
+            else if (locName == 'city') {
+                o.City__c = textVal;
+            }
+            else if (locName == 'state') {
+                o.State__c = textVal;
+            }
+            else if (locName == 'zip') {
+                o.Zip_Code__c = textVal;
+            }
+            else if (locName == 'email') {
+                o.BPT_Email__c = textVal;
+            }
+            else if (locName == 'price_id') {
+    
+            }
+            else if (locName == 'quantity') {
+                o.TotalOpportunityQuantity = decimal.valueOf(textVal);
+                o.Number_of_Tickets__c = decimal.valueOf(textVal);
+            }
 	        else if (locName == 'phone') {
 	            o.Phone_Number__c = textVal;
 	        }
 	        else if (locName == 'ticket_number') {
-	            o.Ticket_Number__c = textVal;
-	
-	            if (existingCamp.Id != null) {
-	                o.CampaignId = existingCamp.Id; // Stamp corresponding Campaign ID
-	            }
-	            
-	            o.BPT_Event_Id__c = existingCamp.Event_Number__c; // Stamp corresponding Brown Paper Tickets Event ID
-	
-	            opptyMap.put(o.Ticket_Number__c, o.clone(true, false, false));
-	            o = newOpportunity();
-	            ticketNumSet.add(textVal);
+	           o.Ticket_Number__c = textVal;
+	           ticketNumSet.add(textVal); // For de-duping purposes later
 	        }
-    	}
+	        else if (locName == 'section') {
+                o.Row_and_Seat__c = 'Section ' + textVal;
+            }
+	        else if (locName == 'row') {
+	            o.Row_and_Seat__c += ', Row ' + textVal;
+	        }
+            else if (locName == 'seat') {
+                o.Row_and_Seat__c += ', Seat ' + textVal;
+
+                if (existingCamp.Id != null) {
+                    o.CampaignId = existingCamp.Id; // Stamp corresponding Campaign ID
+                }
+
+                o.BPT_Event_Id__c = existingCamp.Event_Number__c; // Stamp corresponding Brown Paper Tickets Event ID
+
+                opptyMap.put(o.Ticket_Number__c, o.clone(true, false, false));
+                o = newOpportunity();
+                ticketNumSet.add(textVal);
+            }
+        }
     }
 
    /*
@@ -171,21 +192,21 @@ public with sharing class BPTXmlParser {
     * the appropriate Campaign field
     */
     private void setCampaign(String locName, String textVal) {
-    	if (String.isNotBlank(textVal)) {
-	        if (locName == 'title') {
-	            eventString = textVal;
-	        }
-	        else if (locName == 'link') {
-	            eventString += '^' + textVal;
-	        }
-	        else if (locName == 'e_number') {
-	            eventIdSet.add(textVal);
-	            eventString += '^' + textVal;
+        if (String.isNotBlank(textVal)) {
+            if (locName == 'title') {
+                eventString = textVal;
+            }
+            else if (locName == 'link') {
+                eventString += '^' + textVal;
+            }
+            else if (locName == 'e_number') {
+                eventIdSet.add(textVal);
+                eventString += '^' + textVal;
 
-	            eventStringList.add(String.valueOf(eventString));
-	            eventString = '';
-	        }
-    	}
+                eventStringList.add(String.valueOf(eventString));
+                eventString = '';
+            }
+        }
     }
 
    /*

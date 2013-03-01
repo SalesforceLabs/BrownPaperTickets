@@ -28,7 +28,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
 
 @isTest
 public with sharing class BPTMockHttpRespGenerator implements HttpCalloutMock {
-    private static final String XML_STR = '<document>' +
+    private static final String XML_STR = '<?xml version=\"1.0\"?>' +
+                                            '<document>' +
                                              '<result>success</result>' +
                                              '<resultcode>000000</resultcode>' +
                                              '<note></note>' +
@@ -50,9 +51,9 @@ public with sharing class BPTMockHttpRespGenerator implements HttpCalloutMock {
                                                 '<shipping_method>Physical</shipping_method>' +
                                                 '<order_notes></order_notes>' +
                                                 '<ticket_number>A22647604</ticket_number>' +
-                                                '<section></section>' +
-                                                '<row></row>' +
-                                                '<seat></seat>' +
+                                                '<section>33</section>' +
+                                                '<row>C</row>' +
+                                                '<seat>23</seat>' +
                                              '</item>' +
                                              '<item>' +
                                                 '<order_time>2012-11-29 10:25:34</order_time>' +
@@ -72,9 +73,9 @@ public with sharing class BPTMockHttpRespGenerator implements HttpCalloutMock {
                                                 '<shipping_method>Physical</shipping_method>' +
                                                 '<order_notes></order_notes>' +
                                                 '<ticket_number>A22647605</ticket_number>' +
-                                                '<section></section>' +
-                                                '<row></row>' +
-                                                '<seat></seat>' +
+                                                '<section>33</section>' +
+                                                '<row>C</row>' +
+                                                '<seat>23</seat>' +
                                              '</item>' +
                                            '</document>';
 

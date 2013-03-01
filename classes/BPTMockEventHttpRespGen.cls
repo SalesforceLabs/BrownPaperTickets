@@ -28,7 +28,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
 
 @isTest
 public with sharing class BPTMockEventHttpRespGen implements HttpCalloutMock {
-    private static final String EVENT_XML_STR = '<document>' +
+    private static final String EVENT_XML_STR = '<?xml version=\"1.0\"?>' +
+                                                 '<document>' +
                                                     '<result>success</result>' +
                                                     '<resultcode>000000</resultcode>' +
                                                     '<note></note>' +

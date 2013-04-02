@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
 public with sharing class BPTCallout {
     private static final String BPT_URL = System.Label.BPT_API_URL; // As of January 2013: https://www.brownpapertickets.com/api2/
     private static Opportunity[] opptyList = new List<Opportunity>();
-    public static BPT_Configuration__c bpt_config { get; set; }
     public static Integer opptyNumber { get; private set; }
     public static Boolean integFailure { get; private set; }
     public static Boolean noOpptys { get; private set; }
@@ -48,29 +47,6 @@ public with sharing class BPTCallout {
     public Static String devid { get; set; }
     public String finalUrl;
     public transient HttpResponse response { get; set; }
-
-    static {
-        bpt_config = BPT_Configuration__c.getInstance('Main Settings Record');
-        if (bpt_config != null && bpt_config.Dev_ID__c != null && bpt_config.Login__c != null) {
-            login = bpt_config.Login__c;
-            devid = bpt_config.Dev_ID__c;
-        }
-    }
-
-    public pageReference saveConfig() {
-        if (bpt_config != null) {
-        	bpt_config.Login__c = login;
-        	bpt_config.Dev_ID__c = devid;
-            update bpt_config;
-        }
-        else {
-        	if (String.isNotBlank(devid) && String.isNotBlank(login)) {
-	            BPT_Configuration__c bp = new BPT_Configuration__c(Name='Main Settings Record', Dev_ID__c=devid, Login__c=login);
-	            insert bp;
-        	}
-        }
-        return null;
-    }
 
     /* Prepares and makes a REST call to the Brown Paper Tickets API to retrieve a list of Event Sales */
     public pageReference setEventCallout() {

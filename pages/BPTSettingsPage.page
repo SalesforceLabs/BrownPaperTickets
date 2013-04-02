@@ -84,9 +84,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
         <apex:form id="acctFrm" >
             <span class="header">Brown Paper Tickets Account Information</span>
             <apex:pageBlock id="credSection">
-                    <b>{!$ObjectType.BPT_Configuration__c.Fields.Login__c.Label}:</b>&nbsp; <apex:inputText value="{!login}" id="loginTxt"/><br /><br />
-                    <b>{!$ObjectType.BPT_Configuration__c.Fields.Dev_ID__c.Label}:</b>&nbsp; <apex:inputText value="{!devId}" id="devIdTxt"/><br /><br />
-                <apex:commandButton value="Save as Defaults" action="{!saveConfig}" /><br /><br />
+                    <b>Username:</b>&nbsp; <apex:inputText value="{!login}" id="loginTxt"/><br /><br />
+                    <b>Password:</b>&nbsp; <apex:inputText value="{!devId}" id="devIdTxt"/><br /><br />
                 <apex:outputText styleClass="errorMsg" value="Failed to connect to Brown Paper Tickets. Are your login and Developer ID values correct?" rendered="{!integFailure}"/>
             </apex:pageBlock>
 

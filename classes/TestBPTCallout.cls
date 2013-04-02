@@ -1,10 +1,30 @@
-/* 
- * This class tests creation and submission of a REST request to Brown Paper Tickets to retrieve
- * EventSales and/or OrderSales info.
- * 
- * https://github.com/doubleminus/BPTIntegration
- * License: GPL v3.0 (c) Nathan Wisman, 2013
- */
+/*
+Copyright (c) 2013, salesforce.com, Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the name of the salesforce.com, Inc. nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
+*/
 
 @isTest
 private class TestBPTCallout {
@@ -111,7 +131,7 @@ private class TestBPTCallout {
         System.assertNotEquals(null, resTest.finalUrl);
     }
 
-    static testMethod void testCustomSettingConfig() {
+  /*  static testMethod void testCustomSettingConfig() {
         delete [select Id from BPT_Configuration__c];
 
         BPTCallout resTest = new BPTCallout();
@@ -374,8 +394,8 @@ private class TestBPTCallout {
 
     /* Test some additional BPTCallout controller functionality, including settings updates and our inner cString class */
     private static testMethod void testControllerFunctions1() {
-        BPTCallout testCustomSetting = new BPTCallout();
-        testCustomSetting.setEventCallout();
+        BPTCallout testCall = new BPTCallout();
+        testCall.setEventCallout();
 
         // Instantiate a page reference for our visualforce
         PageReference pageRef = Page.BPTsettingsPage;

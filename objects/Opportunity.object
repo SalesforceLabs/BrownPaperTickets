@@ -66,6 +66,16 @@
         <unique>false</unique>
     </fields>
     <fields>
+        <fullName>Seat_Location__c</fullName>
+        <description>Location Indicator of section, row, and seat for patrons. Populated by Brown Paper Tickets integration AppExchange app.</description>
+        <externalId>false</externalId>
+        <inlineHelpText>Truncates at 255 characters.</inlineHelpText>
+        <label>Seat Location(s)</label>
+        <required>false</required>
+        <trackFeedHistory>false</trackFeedHistory>
+        <type>TextArea</type>
+    </fields>
+    <fields>
         <fullName>State__c</fullName>
         <description>Brown Paper Tickets buyer&apos;s 2-digit State code.</description>
         <externalId>false</externalId>

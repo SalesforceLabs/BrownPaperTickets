@@ -23,12 +23,12 @@ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
+OF THE POSSIBILITY OF SUCH DAMAGE. Written by nwisman.
 */
 
 @isTest
 private class TestBPTXmlParser {
-	private static Set<Id> idSet = new Set<Id>();
+    private static Set<Id> idSet = new Set<Id>();
 
     private static final String ORDER_XML_STR = '<?xml version=\"1.0\"?>' +
                                                     '<document>' +
@@ -77,7 +77,29 @@ private class TestBPTXmlParser {
                                                         '<ticket_number>A22647605</ticket_number>' +
                                                         '<section>1</section>' +
                                                         '<row>C</row>' +
-                                                        '<seat>23</seat>' +
+                                                        '<seat>24</seat>' +
+                                                     '</item>' +
+                                                     '<item>' +
+                                                        '<order_time>2012-12-23 10:25:34</order_time>' +
+                                                        '<date_id>742008</date_id>' +
+                                                        '<price_id>2029583</price_id>' +
+                                                        '<quantity>2</quantity>' +
+                                                        '<fname>Zip</fname>' +
+                                                        '<lname>Olsen</lname>' +
+                                                        '<address>3243 Maple Street</address>' +
+                                                        '<city>Sunnyvale</city>' +
+                                                        '<state>CA</state>' +
+                                                        '<zip>94105</zip>' +
+                                                        '<country>United States</country>' +
+                                                        '<email>zolsen@gmail.com</email>' +
+                                                        '<phone>3249014545</phone>' +
+                                                        '<cc>N/A</cc>' +
+                                                        '<shipping_method>Physical</shipping_method>' +
+                                                        '<order_notes></order_notes>' +
+                                                        '<ticket_number>A22637405</ticket_number>' +
+                                                        '<section>4</section>' +
+                                                        '<row>A</row>' +
+                                                        '<seat>18</seat>' +
                                                      '</item>' +
                                                    '</document>';
         
@@ -268,19 +290,36 @@ private class TestBPTXmlParser {
                                     Phone_Number__c,
                                     TotalOpportunityQuantity,
                                     BPT_Event_Id__c,
-                                    Row_and_Seat__c
+                                    Seat_Location__c
                               from Opportunity
                               where Id in :idSet]) {
-            System.assertNotEquals(o.Id, null);
-            System.assertEquals(o.Name, 'Test Developer Event 1 - Bob Tungsten');
-            System.assertEquals(o.Street_Address__c, '23232 Fleet Street');
-            System.assertEquals(o.City__c, 'Santa Clara');
-            System.assertEquals(o.Zip_Code__c, '94105');
-            System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
-            System.assertEquals(o.Phone_Number__c, '4155555555');
-            System.assertEquals(o.TotalOpportunityQuantity, 5);
-            System.assertEquals(o.Row_and_Seat__c, 'Section 1, Row C, Seat 23');
-            System.assertEquals(o.BPT_Event_Id__c, '2343244');
+            if (o.Name == 'Test Developer Event 1 - Bob Tungsten') {
+                System.assertNotEquals(o.Id, null);
+                System.assertEquals(o.Name, 'Test Developer Event 1 - Bob Tungsten');
+                System.assertEquals(o.Street_Address__c, '23232 Fleet Street');
+                System.assertEquals(o.City__c, 'Santa Clara');
+                System.assertEquals(o.Zip_Code__c, '94105');
+                System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
+                System.assertEquals(o.Phone_Number__c, '4155555555');
+                System.assertEquals(o.TotalOpportunityQuantity, 10.00);
+                System.assertEquals(o.Seat_Location__c, 'Section 1,Row C,Seat 23;Section 1,Row C,Seat 24');
+                System.assertEquals(o.BPT_Event_Id__c, '2343244');
+            }
+            else if (o.Name == 'Test Developer Event 1 - Zip Olsen') {
+                System.assertEquals(o.Name, 'Test Developer Event 1 - Zip Olsen');
+                System.assertEquals(o.Street_Address__c, '3243 Maple Street');
+                System.assertEquals(o.City__c, 'Sunnyvale');
+                System.assertEquals(o.Zip_Code__c, '94105');
+                System.assertEquals(o.BPT_Email__c, 'zolsen@gmail.com');
+                System.assertEquals(o.Phone_Number__c, '3249014545');
+                System.assertEquals(o.TotalOpportunityQuantity, 2.00);
+                System.assertEquals(o.Seat_Location__c, 'Section 4,Row A,Seat 18');
+                System.assertEquals(o.BPT_Event_Id__c, '2343244');
+            }
+            else {
+                // Just force an exception if there is a misnamed Opportunity
+                System.assertEquals(4, 5);
+            }
         }
 
         // Now repeat this action and ensure that two new identical Opportunities aren't created in our list
@@ -314,10 +353,9 @@ private class TestBPTXmlParser {
         bParseTest = new BPTXmlParser(reader, '2343244');
         Opportunity[] oList = bParseTest.getOpptyMap().values();
 
-        System.assertEquals(oList.size(), 2);
+        System.assertEquals(oList.size(), 1);
         insert oList;
         idSet.add(oList[0].Id);
-        idSet.add(oList[1].Id);
 
         for (Opportunity o: [select Id,
                                     Name,
@@ -328,7 +366,7 @@ private class TestBPTXmlParser {
                                     Phone_Number__c,
                                     TotalOpportunityQuantity,
                                     BPT_Event_Id__c,
-                                    Row_and_Seat__c
+                                    Seat_Location__c
                               from Opportunity
                               where Id in :idSet]) {
             System.assertNotEquals(o.Id, null);
@@ -338,8 +376,8 @@ private class TestBPTXmlParser {
             System.assertEquals(o.Zip_Code__c, '94105');
             System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
             System.assertEquals(o.Phone_Number__c, '4155555555');
-            System.assertEquals(o.TotalOpportunityQuantity, 5);
-            System.assertEquals(o.Row_and_Seat__c, 'Section 1, Row N/A, Seat N/A');
+            System.assertEquals(o.TotalOpportunityQuantity, 10);
+            System.assertEquals(o.Seat_Location__c, 'Section 1,Row N/A,Seat N/A');
             System.assertEquals(o.BPT_Event_Id__c, '2343244');
         }
     }
@@ -368,11 +406,9 @@ private class TestBPTXmlParser {
         bParseTest = new BPTXmlParser(reader, '2343244');
         Opportunity[] oList = bParseTest.getOpptyMap().values();
 
-        System.assertEquals(oList.size(), 3);
+        System.assertEquals(oList.size(), 1);
         insert oList;
         idSet.add(oList[0].Id);
-        idSet.add(oList[1].Id);
-        idSet.add(oList[2].Id);
 
         oList = [select Id,
                         Name,
@@ -383,7 +419,7 @@ private class TestBPTXmlParser {
                         Phone_Number__c,
                         TotalOpportunityQuantity,
                         BPT_Event_Id__c,
-                        Row_and_Seat__c
+                        Seat_Location__c
                   from Opportunity
                   where Id in :idSet];
 
@@ -395,12 +431,10 @@ private class TestBPTXmlParser {
             System.assertEquals(oList[i].Zip_Code__c, '94105');
             System.assertEquals(oList[i].BPT_Email__c, 'btung@yahoo.com');
             System.assertEquals(oList[i].Phone_Number__c, '4155555555');
-            System.assertEquals(oList[i].TotalOpportunityQuantity, 5);
+            System.assertEquals(oList[i].TotalOpportunityQuantity, 15.00);
             System.assertEquals(oList[i].BPT_Event_Id__c, '2343244');
         }
 
-        System.assertEquals(oList[0].Row_and_Seat__c, 'Section 2, Row E, Seat 44');
-        System.assertEquals(oList[1].Row_and_Seat__c, 'Section 2, Row C, Seat 33');
-        System.assertEquals(oList[2].Row_and_Seat__c, 'Section N/A, Row N/A, Seat N/A');
+        System.assertEquals(oList[0].Seat_Location__c, 'Section 2,Row C,Seat 33;Section N/A,Row N/A,Seat N/A;Section 2,Row E,Seat 44');
     }
 }

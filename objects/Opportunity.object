@@ -36,18 +36,6 @@
         <unique>false</unique>
     </fields>
     <fields>
-        <fullName>Number_of_Tickets__c</fullName>
-        <description>Number of Brown Paper Tickets purchased.</description>
-        <externalId>false</externalId>
-        <label>Number of Tickets</label>
-        <precision>4</precision>
-        <required>false</required>
-        <scale>0</scale>
-        <trackFeedHistory>false</trackFeedHistory>
-        <type>Number</type>
-        <unique>false</unique>
-    </fields>
-    <fields>
         <fullName>OrderNumber__c</fullName>
         <externalId>false</externalId>
         <label>Order Number</label>

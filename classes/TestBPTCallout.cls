@@ -23,7 +23,7 @@ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
+OF THE POSSIBILITY OF SUCH DAMAGE. Written by nwisman.
 */
 
 @isTest
@@ -193,15 +193,14 @@ private class TestBPTCallout {
         resTest.getOpptyContent(res, c.Event_Number__c);
 
         Opportunity[] oList = BPTCallout.getOpptyList();
-        System.assertEquals(oList.size(), 2);
+        System.assertEquals(oList.size(), 1);
         System.assert(!BPTCallout.noOpptys);
         System.assert(resTest.opptysCreated);
         System.assertEquals(null, BPTCallout.integFailure);
-        System.assertEquals(BPTCallout.opptyNumber, 2);
+        System.assertEquals(BPTCallout.opptyNumber, 1);
 
         Set<Id> idSet = new Set<Id>();
         idSet.add(oList[0].Id);
-        idSet.add(oList[1].Id);
 
         // Check that Oppty values are correct
         for (Opportunity o: [select Id,
@@ -213,7 +212,7 @@ private class TestBPTCallout {
                                     Phone_Number__c,
                                     TotalOpportunityQuantity,
                                     BPT_Event_Id__c,
-                                    Row_and_Seat__c
+                                    Seat_Location__c
                               from Opportunity
                               where Id in :idSet]) {
             System.assertNotEquals(o.Id, null);
@@ -223,9 +222,9 @@ private class TestBPTCallout {
             System.assertEquals(o.Zip_Code__c, '94105');
             System.assertEquals(o.BPT_Email__c, 'btung@yahoo.com');
             System.assertEquals(o.Phone_Number__c, '4155555555');
-            System.assertEquals(o.TotalOpportunityQuantity, 5);
+            System.assertEquals(o.TotalOpportunityQuantity, 10);
             System.assertEquals(o.BPT_Event_Id__c, '888888');
-            System.assertEquals(o.Row_and_Seat__c, 'Section 33, Row C, Seat 23');
+            System.assertEquals(o.Seat_Location__c, 'Section 33,Row C,Seat 23');
         }
     }
 

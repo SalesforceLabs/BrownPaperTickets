@@ -23,13 +23,13 @@ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE. Written by Nathan Wisman.
+OF THE POSSIBILITY OF SUCH DAMAGE. Written by nwisman.
 */
 
 public with sharing class BPTXmlParser {
     private static final Set<String> ORDER_ATTRIBUTE_SET = new Set<String>(), EVENT_ATTRIBUTE_SET = new Set<String>(),
                                      SEATING_SKIPS = new Set<String>{'section', 'row', 'seat'};
-    private Map<String, Opportunity> opptyMap = new Map<String, Opportunity>();
+    private Map<String, Opportunity> opptyMap = new Map<String, Opportunity>(), dupeOpptyMap = new Map<String,Opportunity>();
     private Campaign existingCamp = new Campaign();
     private Set<String> ticketNumSet = new Set<String>(), eventIdSet = new Set<String>();
     private Opportunity o = newOpportunity();
@@ -126,9 +126,12 @@ public with sharing class BPTXmlParser {
 
    /*
     * Based on which attribute we're working with, write its value into
-    * the appropriate Opportunity field
+    * the appropriate Opportunity field, in order fields are received in
+    * XML return data from BPT API.
     */
     private void setOppty(String locName, String textVal) {
+        Opportunity tempOppty;
+
         if (String.isNotBlank(textVal)) {
             if (locName == 'fname') {
                 o.Name = existingCamp.Name + ' - ' + textVal;
@@ -156,33 +159,53 @@ public with sharing class BPTXmlParser {
             }
             else if (locName == 'quantity') {
                 o.TotalOpportunityQuantity = decimal.valueOf(textVal);
-                o.Number_of_Tickets__c = decimal.valueOf(textVal);
             }
-	        else if (locName == 'phone') {
-	            o.Phone_Number__c = textVal;
-	        }
-	        else if (locName == 'ticket_number') {
-	           o.Ticket_Number__c = textVal;
-	           ticketNumSet.add(textVal); // For de-duping purposes later
-	        }
-	        else if (locName == 'section') {
-                o.Row_and_Seat__c = 'Section ' + textVal;
+            else if (locName == 'phone') {
+                o.Phone_Number__c = textVal;
             }
-	        else if (locName == 'row') {
-	            o.Row_and_Seat__c += ', Row ' + textVal;
-	        }
+            else if (locName == 'ticket_number') {
+               o.Ticket_Number__c = textVal;
+               ticketNumSet.add(textVal); // For de-duping purposes later
+            }
+            else if (locName == 'section') {
+                o.Seat_Location__c = 'Section ' + textVal;
+            }
+            else if (locName == 'row') {
+                o.Seat_Location__c += ',Row ' + textVal;
+            }
             else if (locName == 'seat') {
-                o.Row_and_Seat__c += ', Seat ' + textVal;
+                o.Seat_Location__c += ',Seat ' + textVal;
 
-                if (existingCamp.Id != null) {
-                    o.CampaignId = existingCamp.Id; // Stamp corresponding Campaign ID
+                // Establish a unique identifier to use for bundling ticket sales
+                // from the same buyer into a single Opportunity record
+                String keyStr = o.Name + o.BPT_Email__c;
+
+                // We already have another ticket sale for this buyer, so let's bundle and update Quantity to reflect this
+                if (dupeOpptyMap.containsKey(keyStr) && o.TotalOpportunityQuantity > 0) {
+                    Opportunity opp = dupeOpptyMap.get(keyStr);
+                    opp.TotalOpportunityQuantity = dupeOpptyMap.get(keyStr).TotalOpportunityQuantity + o.TotalOpportunityQuantity;
+
+                    // Concatenate all seating locations from a single buyer's ticket purchases
+                    if (opp.Seat_Location__c != o.Seat_Location__c) { // Only concat if seat locations are different
+                        String tempSeatLoc = opp.Seat_Location__c + ';' + o.Seat_Location__c;
+                        
+                        if (tempSeatLoc != opp.Seat_Location__c && tempSeatLoc.length() < 254) // Text area field. Truncate if needed.
+                            opp.Seat_Location__c = tempSeatLoc;
+                    }
                 }
+                // No other ticket sale found yet. Finish creating Opportunity.
+                else {
+                    if (existingCamp.Id != null)
+                        o.CampaignId = existingCamp.Id; // Stamp corresponding Campaign ID
 
-                o.BPT_Event_Id__c = existingCamp.Event_Number__c; // Stamp corresponding Brown Paper Tickets Event ID
+                    o.BPT_Event_Id__c = existingCamp.Event_Number__c; // Stamp corresponding Brown Paper Tickets Event ID
+                    tempOppty = o.clone(true, false, false);
 
-                opptyMap.put(o.Ticket_Number__c, o.clone(true, false, false));
-                o = newOpportunity();
-                ticketNumSet.add(textVal);
+                    opptyMap.put(o.Ticket_Number__c, tempOppty);
+                    dupeOpptyMap.put(tempOppty.Name + tempOppty.BPT_Email__c, tempOppty); // Put in map to bundle later.
+                    o = newOpportunity(); // Restart process by creating fresh Oppty.
+                  //  ticketNumSet.add(textVal);
+                }
             }
         }
     }
